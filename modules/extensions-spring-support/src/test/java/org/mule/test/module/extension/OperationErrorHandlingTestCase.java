@@ -36,8 +36,8 @@ public class OperationErrorHandlingTestCase extends AbstractExtensionFunctionalT
   public ExpectedError expectedError = none();
 
   @Override
-  protected String[] getConfigFiles() {
-    return new String[] {"heisenberg-operation-error-handling-config.xml"};
+  protected String getConfigFile() {
+    return "heisenberg-operation-error-handling-config.xml";
   }
 
   @Test

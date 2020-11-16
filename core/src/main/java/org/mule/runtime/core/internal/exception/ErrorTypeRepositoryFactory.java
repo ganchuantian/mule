@@ -12,9 +12,7 @@ import static org.mule.runtime.core.api.exception.Errors.ComponentIdentifiers.Ha
 import static org.mule.runtime.core.api.exception.Errors.ComponentIdentifiers.Handleable.CONNECTIVITY;
 import static org.mule.runtime.core.api.exception.Errors.ComponentIdentifiers.Handleable.DUPLICATE_MESSAGE;
 import static org.mule.runtime.core.api.exception.Errors.ComponentIdentifiers.Handleable.EXPRESSION;
-import static org.mule.runtime.core.api.exception.Errors.ComponentIdentifiers.Unhandleable.FATAL;
 import static org.mule.runtime.core.api.exception.Errors.ComponentIdentifiers.Handleable.NOT_PERMITTED;
-import static org.mule.runtime.core.api.exception.Errors.ComponentIdentifiers.Unhandleable.OVERLOAD;
 import static org.mule.runtime.core.api.exception.Errors.ComponentIdentifiers.Handleable.REDELIVERY_EXHAUSTED;
 import static org.mule.runtime.core.api.exception.Errors.ComponentIdentifiers.Handleable.RETRY_EXHAUSTED;
 import static org.mule.runtime.core.api.exception.Errors.ComponentIdentifiers.Handleable.ROUTING;
@@ -28,25 +26,33 @@ import static org.mule.runtime.core.api.exception.Errors.ComponentIdentifiers.Ha
 import static org.mule.runtime.core.api.exception.Errors.ComponentIdentifiers.Handleable.TIMEOUT;
 import static org.mule.runtime.core.api.exception.Errors.ComponentIdentifiers.Handleable.TRANSFORMATION;
 import static org.mule.runtime.core.api.exception.Errors.ComponentIdentifiers.Handleable.VALIDATION;
+import static org.mule.runtime.core.api.exception.Errors.ComponentIdentifiers.Unhandleable.FATAL;
 import static org.mule.runtime.core.api.exception.Errors.ComponentIdentifiers.Unhandleable.FLOW_BACK_PRESSURE;
+import static org.mule.runtime.core.api.exception.Errors.ComponentIdentifiers.Unhandleable.OVERLOAD;
 
 import org.mule.runtime.api.exception.ErrorTypeRepository;
 import org.mule.runtime.api.message.ErrorType;
+import org.mule.runtime.ast.api.ArtifactAst;
 
 /**
  * Factory for {@link ErrorTypeRepository}.
- * 
+ *
  * @since 4.0
+ *
+ * @deprecated since 4.4, obtain the {@link ErrorTypeRepository} instance from an {@link ArtifactAst} instead.
  */
+@Deprecated
 public class ErrorTypeRepositoryFactory {
 
   /**
    * Creates the default {@link ErrorTypeRepository} to use in mule.
    * <p>
    * The {@link ErrorTypeRepository} gets populated with the default mappings between common core exceptions and core error types.
-   * 
+   *
    * @return a new {@link ErrorTypeRepository}.
+   * @deprecated since 4.4, obtain the {@link ErrorTypeRepository} instance from an {@link ArtifactAst} instead.
    */
+  @Deprecated
   public static ErrorTypeRepository createDefaultErrorTypeRepository() {
     ErrorTypeRepository errorTypeRepository = new DefaultErrorTypeRepository();
     errorTypeRepository.addErrorType(TRANSFORMATION, errorTypeRepository.getAnyErrorType());
