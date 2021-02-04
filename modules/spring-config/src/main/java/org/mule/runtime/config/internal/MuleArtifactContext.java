@@ -90,6 +90,8 @@ import org.mule.runtime.core.api.util.IOUtils;
 import org.mule.runtime.core.internal.config.FeatureFlaggingServiceBuilder;
 import org.mule.runtime.core.internal.context.DefaultMuleContext;
 import org.mule.runtime.core.internal.context.MuleContextWithRegistry;
+import org.mule.runtime.core.internal.exception.ContributedErrorTypeLocator;
+import org.mule.runtime.core.internal.exception.ContributedErrorTypeRepository;
 import org.mule.runtime.core.internal.registry.DefaultRegistry;
 import org.mule.runtime.core.internal.registry.MuleRegistry;
 import org.mule.runtime.core.internal.registry.MuleRegistryHelper;
@@ -330,13 +332,13 @@ public class MuleArtifactContext extends AbstractRefreshableConfigApplicationCon
     registerErrorMappings(errorTypeRepository, errorTypeLocator, dependencies);
 
     try {
-      ((DefaultMuleContext) muleContext).getRegistry().registerObject(ErrorTypeRepository.class.getName(), errorTypeRepository);
-      ((DefaultMuleContext) muleContext).getRegistry().registerObject(ErrorTypeLocator.class.getName(), errorTypeLocator);
+      ((DefaultMuleContext) muleContext).getRegistry().lookupObject(ContributedErrorTypeRepository.class)
+          .setDelegate(errorTypeRepository);
+      ((DefaultMuleContext) muleContext).getRegistry().lookupObject(ContributedErrorTypeLocator.class)
+          .setDelegate(errorTypeLocator);
     } catch (RegistrationException e) {
       throw new MuleRuntimeException(e);
     }
-    ((DefaultMuleContext) muleContext).setErrorTypeRepository(errorTypeRepository);
-    ((DefaultMuleContext) muleContext).setErrorTypeLocator(errorTypeLocator);
   }
 
   private String compToLoc(ComponentAst component) {

@@ -1120,17 +1120,11 @@ public class DefaultMuleContext implements MuleContextWithRegistry, PrivilegedMu
     this.errorTypeLocator = errorTypeLocator;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public ErrorTypeLocator getErrorTypeLocator() {
     return errorTypeLocator;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public ErrorTypeRepository getErrorTypeRepository() {
     return errorTypeRepository;

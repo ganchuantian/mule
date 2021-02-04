@@ -7,9 +7,9 @@
 package org.mule.runtime.core.internal.context;
 
 import static java.util.Optional.empty;
+import static org.mule.runtime.ast.api.error.ErrorTypeRepositoryProvider.getCoreErrorTypeRepo;
 import static org.mule.runtime.core.api.context.notification.ServerNotificationManager.createDefaultNotificationManager;
 import static org.mule.runtime.core.internal.exception.ErrorTypeLocatorFactory.createDefaultErrorTypeLocator;
-import static org.mule.runtime.core.internal.exception.ErrorTypeRepositoryFactory.createDefaultErrorTypeRepository;
 
 import org.mule.runtime.api.exception.ErrorTypeRepository;
 import org.mule.runtime.api.exception.MuleRuntimeException;
@@ -29,6 +29,8 @@ import org.mule.runtime.core.api.context.notification.ServerNotificationManager;
 import org.mule.runtime.core.api.exception.SystemExceptionHandler;
 import org.mule.runtime.core.api.lifecycle.LifecycleManager;
 import org.mule.runtime.core.api.util.ClassUtils;
+import org.mule.runtime.core.internal.exception.ContributedErrorTypeLocator;
+import org.mule.runtime.core.internal.exception.ContributedErrorTypeRepository;
 import org.mule.runtime.core.internal.exception.DefaultSystemExceptionStrategy;
 import org.mule.runtime.core.internal.lifecycle.MuleContextLifecycleManager;
 import org.mule.runtime.core.internal.registry.SimpleRegistry;
@@ -90,11 +92,15 @@ public class DefaultMuleContextBuilder implements MuleContextBuilder {
     muleContext.setArtifactType(artifactType);
 
     if (errorTypeRepository == null) {
-      errorTypeRepository = createDefaultErrorTypeRepository();
+      final ContributedErrorTypeRepository contributedErrorTypeRepository = new ContributedErrorTypeRepository();
+      contributedErrorTypeRepository.setDelegate(getCoreErrorTypeRepo());
+      errorTypeRepository = contributedErrorTypeRepository;
     }
 
     muleContext.setErrorTypeRepository(errorTypeRepository);
-    muleContext.setErrorTypeLocator(createDefaultErrorTypeLocator(errorTypeRepository));
+    final ContributedErrorTypeLocator errorTypeLocator = new ContributedErrorTypeLocator();
+    errorTypeLocator.setDelegate(createDefaultErrorTypeLocator(errorTypeRepository));
+    muleContext.setErrorTypeLocator(errorTypeLocator);
 
     final SimpleRegistry registry = new SimpleRegistry(muleContext, muleContext.getLifecycleInterceptor());
     muleContext.setRegistry(registry);
