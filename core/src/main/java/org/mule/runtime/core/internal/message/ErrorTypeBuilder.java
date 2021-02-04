@@ -4,7 +4,7 @@
  * license, a copy of which has been included with this distribution in the
  * LICENSE.txt file.
  */
-package org.mule.runtime.config.internal.error;
+package org.mule.runtime.core.internal.message;
 
 import static java.lang.String.format;
 import static org.mule.runtime.api.util.Preconditions.checkState;
@@ -12,17 +12,14 @@ import static org.mule.runtime.core.api.error.Errors.CORE_NAMESPACE_NAME;
 import static org.mule.runtime.core.api.error.Errors.Identifiers.ANY_IDENTIFIER;
 import static org.mule.runtime.core.api.error.Errors.Identifiers.CRITICAL_IDENTIFIER;
 
-import org.mule.api.annotation.NoExtend;
 import org.mule.runtime.api.message.ErrorType;
 
 import java.util.Objects;
 
 /**
- * Builder for {@link ErrorType}. This must be the only mechanism to create an instance of {@code ErrorType}.
- *
- * @since 4.0
+ * @deprecated Keeping this because the package it belongs to is exported.
  */
-@NoExtend
+@Deprecated
 public class ErrorTypeBuilder {
 
   private String identifier;
@@ -33,7 +30,7 @@ public class ErrorTypeBuilder {
     return new ErrorTypeBuilder();
   }
 
-  protected ErrorTypeBuilder() {}
+  private ErrorTypeBuilder() {}
 
   /**
    * Sets the error type identifier. @see {@link ErrorType#getIdentifier()}.
