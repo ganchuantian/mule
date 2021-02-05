@@ -8,16 +8,12 @@ package org.mule.runtime.config.internal.validation;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.mule.runtime.api.component.ComponentIdentifier.builder;
 import static org.mule.runtime.ast.api.util.ComponentAstPredicatesFactory.currentElemement;
 import static org.mule.runtime.ast.api.util.ComponentAstPredicatesFactory.equalsIdentifier;
 import static org.mule.runtime.ast.api.validation.Validation.Level.ERROR;
-import static org.mule.runtime.internal.dsl.DslConstants.CORE_PREFIX;
 
-import org.mule.runtime.api.component.ComponentIdentifier;
 import org.mule.runtime.ast.api.ArtifactAst;
 import org.mule.runtime.ast.api.ComponentAst;
-import org.mule.runtime.ast.api.validation.Validation;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,12 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * Referenced error types cannot be empty or null
  */
-public class RaiseErrorTypeReferencesPresent implements Validation {
-
-  private static final String RAISE_ERROR = "raise-error";
-
-  private static final ComponentIdentifier RAISE_ERROR_IDENTIFIER =
-      builder().namespace(CORE_PREFIX).name(RAISE_ERROR).build();
+public class RaiseErrorTypeReferencesPresent extends AbstractErrorTypesValidation {
 
   @Override
   public String getName() {

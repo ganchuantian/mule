@@ -289,8 +289,11 @@ public class MuleArtifactContext extends AbstractRefreshableConfigApplicationCon
 
           Builder builder = AstXmlParser.builder()
               .withPropertyResolver(propertyKey -> (String) propertyResolver.resolveValue(propertyKey))
+              // TODO MULE-19203 for policies this includes all extensions from the app as well. It should be just the ones
+              // declared in the policy, with a feature flag for getting the ones from the app as well (ref:
+              // MuleSystemProperties#SHARE_ERROR_TYPE_REPOSITORY_PROPERTY).
               .withExtensionModels(getExtensions())
-              // TODO MULE-XXXXX get and pass the actual parent artifact
+              // TODO MULE-19204 get and pass the actual parent artifact
               .withParentArtifact(new BaseArtifactAst() {
 
                 @Override
@@ -385,6 +388,9 @@ public class MuleArtifactContext extends AbstractRefreshableConfigApplicationCon
     final Set<ExtensionModel> dependencies = artifactAst.dependencies();
     registerErrorMappings(errorTypeRepository, errorTypeLocator, dependencies);
 
+    // Because instances of the repository and locator may be already created and injected into another objects, those instances
+    // cannot just be set into the registry, and this contributing layer is needed to ensure the correct functioning of the DI
+    // mechanism.
     ((ContributedErrorTypeRepository) muleContext.getErrorTypeRepository()).setDelegate(errorTypeRepository);
     ((ContributedErrorTypeLocator) ((PrivilegedMuleContext) muleContext).getErrorTypeLocator()).setDelegate(errorTypeLocator);
   }

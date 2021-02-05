@@ -9,16 +9,12 @@ package org.mule.runtime.config.internal.validation;
 import static java.lang.String.format;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.mule.runtime.api.component.ComponentIdentifier.builder;
 import static org.mule.runtime.ast.api.util.ComponentAstPredicatesFactory.currentElemement;
 import static org.mule.runtime.ast.api.validation.Validation.Level.ERROR;
-import static org.mule.runtime.internal.dsl.DslConstants.CORE_PREFIX;
 
-import org.mule.runtime.api.component.ComponentIdentifier;
 import org.mule.runtime.api.message.ErrorType;
 import org.mule.runtime.ast.api.ArtifactAst;
 import org.mule.runtime.ast.api.ComponentAst;
-import org.mule.runtime.ast.api.validation.Validation;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,18 +23,7 @@ import java.util.function.Predicate;
 /**
  * Referenced error types do exist in the context of the artifact
  */
-public class ErrorHandlerOnErrorTypeExists implements Validation {
-
-  private static final String ON_ERROR = "on-error";
-  private static final String ON_ERROR_PROPAGATE = "on-error-propagate";
-  private static final String ON_ERROR_CONTINUE = "on-error-continue";
-
-  private static final ComponentIdentifier ON_ERROR_IDENTIFIER =
-      builder().namespace(CORE_PREFIX).name(ON_ERROR).build();
-  private static final ComponentIdentifier ON_ERROR_PROPAGATE_IDENTIFIER =
-      builder().namespace(CORE_PREFIX).name(ON_ERROR_PROPAGATE).build();
-  private static final ComponentIdentifier ON_ERROR_CONTINUE_IDENTIFIER =
-      builder().namespace(CORE_PREFIX).name(ON_ERROR_CONTINUE).build();
+public class ErrorHandlerOnErrorTypeExists extends AbstractErrorTypesValidation {
 
   @Override
   public String getName() {
@@ -66,28 +51,12 @@ public class ErrorHandlerOnErrorTypeExists implements Validation {
 
   @Override
   public Optional<String> validate(ComponentAst onErrorModel, ArtifactAst artifact) {
-    final Optional<ErrorType> errorType = artifact.getErrorTypeRepository()
-        .lookupErrorType(parserErrorType(onErrorModel.getParameter("type").getResolvedRawValue()));
+    final Optional<ErrorType> errorType = lookup(onErrorModel, "type", artifact);
     if (!errorType.isPresent()) {
       return of(format("Could not find error '%s' used in %s", errorType, compToLoc(onErrorModel)));
     }
 
     return empty();
-  }
-
-  private static ComponentIdentifier parserErrorType(String representation) {
-    int separator = representation.indexOf(':');
-    String namespace;
-    String identifier;
-    if (separator > 0) {
-      namespace = representation.substring(0, separator).toUpperCase();
-      identifier = representation.substring(separator + 1).toUpperCase();
-    } else {
-      namespace = CORE_PREFIX.toUpperCase();
-      identifier = representation.toUpperCase();
-    }
-
-    return builder().name(identifier).namespace(namespace).build();
   }
 
   private String compToLoc(ComponentAst component) {
