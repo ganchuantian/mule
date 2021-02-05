@@ -30,12 +30,15 @@ import java.util.function.Predicate;
 public class ErrorHandlerOnErrorTypeExists implements Validation {
 
   private static final String ON_ERROR = "on-error";
-  private static final String WHEN_CHOICE_ES_ATTRIBUTE = "when";
-  private static final String TYPE_ES_ATTRIBUTE = "type";
-  private static final String REFERENCE_ATTRIBUTE = "ref";
+  private static final String ON_ERROR_PROPAGATE = "on-error-propagate";
+  private static final String ON_ERROR_CONTINUE = "on-error-continue";
 
   private static final ComponentIdentifier ON_ERROR_IDENTIFIER =
       builder().namespace(CORE_PREFIX).name(ON_ERROR).build();
+  private static final ComponentIdentifier ON_ERROR_PROPAGATE_IDENTIFIER =
+      builder().namespace(CORE_PREFIX).name(ON_ERROR_PROPAGATE).build();
+  private static final ComponentIdentifier ON_ERROR_CONTINUE_IDENTIFIER =
+      builder().namespace(CORE_PREFIX).name(ON_ERROR_CONTINUE).build();
 
   @Override
   public String getName() {
@@ -54,7 +57,9 @@ public class ErrorHandlerOnErrorTypeExists implements Validation {
 
   @Override
   public Predicate<List<ComponentAst>> applicable() {
-    return currentElemement(comp -> comp.getIdentifier().equals(ON_ERROR_IDENTIFIER)
+    return currentElemement(comp -> (comp.getIdentifier().equals(ON_ERROR_IDENTIFIER)
+        || comp.getIdentifier().equals(ON_ERROR_PROPAGATE_IDENTIFIER)
+        || comp.getIdentifier().equals(ON_ERROR_CONTINUE_IDENTIFIER))
         && comp.getParameter("type") != null
         && comp.getParameter("type").getResolvedRawValue() != null);
   }
