@@ -481,8 +481,8 @@ public class ArtifactContextBuilder {
         if (parentArtifact != null) {
           builders.add(new ConnectionManagerConfigurationBuilder(parentArtifact));
 
-          withArtifactMuleContext(parentArtifact, parentContext -> muleContextBuilder
-              .setErrorTypeRepository(createErrorTypeRepository(parentContext.getErrorTypeRepository())));
+          // withArtifactMuleContext(parentArtifact, parentContext -> muleContextBuilder
+          // .setErrorTypeRepository(createErrorTypeRepository(parentContext.getErrorTypeRepository())));
         } else {
           builders.add(new ConnectionManagerConfigurationBuilder());
         }

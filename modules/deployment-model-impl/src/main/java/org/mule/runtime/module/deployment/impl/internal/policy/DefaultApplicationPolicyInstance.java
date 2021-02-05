@@ -7,9 +7,11 @@
 
 package org.mule.runtime.module.deployment.impl.internal.policy;
 
+import static java.lang.Boolean.getBoolean;
 import static org.mule.runtime.api.i18n.I18nMessageFactory.createStaticMessage;
 import static org.mule.runtime.api.store.ObjectStoreManager.BASE_IN_MEMORY_OBJECT_STORE_KEY;
 import static org.mule.runtime.api.store.ObjectStoreManager.BASE_PERSISTENT_OBJECT_STORE_KEY;
+import static org.mule.runtime.api.util.MuleSystemProperties.SHARE_ERROR_TYPE_REPOSITORY_PROPERTY;
 import static org.mule.runtime.api.util.collection.SmallMap.copy;
 import static org.mule.runtime.core.api.config.MuleProperties.OBJECT_LOCK_PROVIDER;
 import static org.mule.runtime.core.api.config.MuleProperties.OBJECT_TIME_SUPPLIER;
@@ -111,9 +113,12 @@ public class DefaultApplicationPolicyInstance implements ApplicationPolicyInstan
             .setClassLoaderRepository(classLoaderRepository)
             .setArtifactPlugins(artifactPlugins)
             .setParentArtifact(application)
-            .setExtensionManagerFactory(new CompositeArtifactExtensionManagerFactory(application, extensionModelLoaderRepository,
-                                                                                     ownArtifactPlugins,
-                                                                                     new DefaultExtensionManagerFactory()))
+            .setExtensionManagerFactory(shareErrorTypeRepository()
+                ? new CompositeArtifactExtensionManagerFactory(application, extensionModelLoaderRepository,
+                                                               ownArtifactPlugins,
+                                                               new DefaultExtensionManagerFactory())
+                : new ArtifactExtensionManagerFactory(ownArtifactPlugins, extensionModelLoaderRepository,
+                                                      new DefaultExtensionManagerFactory()))
             .setMuleContextListener(muleContextListener);
 
     artifactBuilder.withServiceConfigurator(customizationService -> {
@@ -132,6 +137,10 @@ public class DefaultApplicationPolicyInstance implements ApplicationPolicyInstan
     } catch (MuleException e) {
       throw new InitialisationException(createStaticMessage("Cannot create artifact context for the policy instance"), e, this);
     }
+  }
+
+  private boolean shareErrorTypeRepository() {
+    return getBoolean(SHARE_ERROR_TYPE_REPOSITORY_PROPERTY);
   }
 
   private void addPolicyCustomizationOverride(String objectKey, CustomizationService customizationService,
