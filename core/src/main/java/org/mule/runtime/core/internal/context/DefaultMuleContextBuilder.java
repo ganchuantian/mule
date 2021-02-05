@@ -91,15 +91,16 @@ public class DefaultMuleContextBuilder implements MuleContextBuilder {
     muleContext.setLifecycleManager(injectMuleContextIfRequired(getLifecycleManager(), muleContext));
     muleContext.setArtifactType(artifactType);
 
+    final ContributedErrorTypeRepository contributedErrorTypeRepository = new ContributedErrorTypeRepository();
     if (errorTypeRepository == null) {
-      final ContributedErrorTypeRepository contributedErrorTypeRepository = new ContributedErrorTypeRepository();
       contributedErrorTypeRepository.setDelegate(getCoreErrorTypeRepo());
-      errorTypeRepository = contributedErrorTypeRepository;
+    } else {
+      contributedErrorTypeRepository.setDelegate(errorTypeRepository);
     }
 
-    muleContext.setErrorTypeRepository(errorTypeRepository);
+    muleContext.setErrorTypeRepository(contributedErrorTypeRepository);
     final ContributedErrorTypeLocator errorTypeLocator = new ContributedErrorTypeLocator();
-    errorTypeLocator.setDelegate(createDefaultErrorTypeLocator(errorTypeRepository));
+    errorTypeLocator.setDelegate(createDefaultErrorTypeLocator(contributedErrorTypeRepository));
     muleContext.setErrorTypeLocator(errorTypeLocator);
 
     final SimpleRegistry registry = new SimpleRegistry(muleContext, muleContext.getLifecycleInterceptor());

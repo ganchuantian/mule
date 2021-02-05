@@ -62,6 +62,7 @@ import org.mule.runtime.api.util.Pair;
 import org.mule.runtime.app.declaration.api.ArtifactDeclaration;
 import org.mule.runtime.ast.api.ArtifactAst;
 import org.mule.runtime.ast.api.ComponentAst;
+import org.mule.runtime.ast.api.util.BaseArtifactAst;
 import org.mule.runtime.ast.api.validation.ValidationResult;
 import org.mule.runtime.ast.api.validation.ValidationResultItem;
 import org.mule.runtime.ast.api.xml.AstXmlParser;
@@ -88,7 +89,6 @@ import org.mule.runtime.core.api.transaction.TransactionManagerFactory;
 import org.mule.runtime.core.api.transformer.Converter;
 import org.mule.runtime.core.api.util.IOUtils;
 import org.mule.runtime.core.internal.config.FeatureFlaggingServiceBuilder;
-import org.mule.runtime.core.internal.context.DefaultMuleContext;
 import org.mule.runtime.core.internal.context.MuleContextWithRegistry;
 import org.mule.runtime.core.internal.exception.ContributedErrorTypeLocator;
 import org.mule.runtime.core.internal.exception.ContributedErrorTypeRepository;
@@ -97,8 +97,8 @@ import org.mule.runtime.core.internal.registry.MuleRegistry;
 import org.mule.runtime.core.internal.registry.MuleRegistryHelper;
 import org.mule.runtime.core.internal.registry.TransformerResolver;
 import org.mule.runtime.core.internal.util.DefaultResourceLocator;
+import org.mule.runtime.core.privileged.PrivilegedMuleContext;
 import org.mule.runtime.core.privileged.exception.ErrorTypeLocator;
-import org.mule.runtime.core.privileged.registry.RegistrationException;
 import org.mule.runtime.dsl.api.ConfigResource;
 import org.mule.runtime.extension.api.property.XmlExtensionModelProperty;
 import org.mule.runtime.properties.api.ConfigurationPropertiesProvider;
@@ -114,6 +114,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -282,9 +283,36 @@ public class MuleArtifactContext extends AbstractRefreshableConfigApplicationCon
                   return "Deployment properties";
                 }
               });
+
+          final ErrorTypeRepository parentErrorTypeRepository =
+              ((ContributedErrorTypeRepository) muleContext.getErrorTypeRepository()).getDelegate();
+
           Builder builder = AstXmlParser.builder()
               .withPropertyResolver(propertyKey -> (String) propertyResolver.resolveValue(propertyKey))
-              .withExtensionModels(getExtensions());
+              .withExtensionModels(getExtensions())
+              // TODO MULE-XXXXX get and pass the actual parent artifact
+              .withParentArtifact(new BaseArtifactAst() {
+
+                @Override
+                public void updatePropertiesResolver(UnaryOperator<String> newPropertiesResolver) {
+                  // nothing to do
+                }
+
+                @Override
+                public Stream<ComponentAst> topLevelComponentsStream() {
+                  return Stream.empty();
+                }
+
+                @Override
+                public ErrorTypeRepository getErrorTypeRepository() {
+                  return parentErrorTypeRepository;
+                }
+
+                @Override
+                public Set<ExtensionModel> dependencies() {
+                  return emptySet();
+                }
+              });
           if (disableXmlValidations) {
             builder = builder.withSchemaValidationsDisabled();
           }
@@ -320,27 +348,6 @@ public class MuleArtifactContext extends AbstractRefreshableConfigApplicationCon
     doValidateModel(artifactAst);
   }
 
-  protected void registerErrors(final ArtifactAst artifactAst) {
-    doRegisterErrors(artifactAst);
-  }
-
-  protected void doRegisterErrors(final ArtifactAst artifactAst) {
-    final ErrorTypeRepository errorTypeRepository = artifactAst.getErrorTypeRepository();
-    final ErrorTypeLocator errorTypeLocator = createDefaultErrorTypeLocator(errorTypeRepository);
-
-    final Set<ExtensionModel> dependencies = artifactAst.dependencies();
-    registerErrorMappings(errorTypeRepository, errorTypeLocator, dependencies);
-
-    try {
-      ((DefaultMuleContext) muleContext).getRegistry().lookupObject(ContributedErrorTypeRepository.class)
-          .setDelegate(errorTypeRepository);
-      ((DefaultMuleContext) muleContext).getRegistry().lookupObject(ContributedErrorTypeLocator.class)
-          .setDelegate(errorTypeLocator);
-    } catch (RegistrationException e) {
-      throw new MuleRuntimeException(e);
-    }
-  }
-
   private String compToLoc(ComponentAst component) {
     return "[" + component.getMetadata().getFileName().orElse("unknown") + ":"
         + component.getMetadata().getStartLine().orElse(-1) + "]";
@@ -360,6 +367,21 @@ public class MuleArtifactContext extends AbstractRefreshableConfigApplicationCon
 
       throw new MuleRuntimeException(createStaticMessage(allMessages));
     }
+  }
+
+  protected void registerErrors(final ArtifactAst artifactAst) {
+    doRegisterErrors(artifactAst);
+  }
+
+  protected void doRegisterErrors(final ArtifactAst artifactAst) {
+    final ErrorTypeRepository errorTypeRepository = artifactAst.getErrorTypeRepository();
+    final ErrorTypeLocator errorTypeLocator = createDefaultErrorTypeLocator(errorTypeRepository);
+
+    final Set<ExtensionModel> dependencies = artifactAst.dependencies();
+    registerErrorMappings(errorTypeRepository, errorTypeLocator, dependencies);
+
+    ((ContributedErrorTypeRepository) muleContext.getErrorTypeRepository()).setDelegate(errorTypeRepository);
+    ((ContributedErrorTypeLocator) ((PrivilegedMuleContext) muleContext).getErrorTypeLocator()).setDelegate(errorTypeLocator);
   }
 
   public void initialize() {

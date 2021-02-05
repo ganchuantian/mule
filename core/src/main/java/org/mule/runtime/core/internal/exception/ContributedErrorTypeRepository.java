@@ -66,4 +66,8 @@ public class ContributedErrorTypeRepository implements ErrorTypeRepository {
   public void setDelegate(ErrorTypeRepository delegate) {
     this.delegate = delegate;
   }
+
+  public ErrorTypeRepository getDelegate() {
+    return delegate;
+  }
 }
