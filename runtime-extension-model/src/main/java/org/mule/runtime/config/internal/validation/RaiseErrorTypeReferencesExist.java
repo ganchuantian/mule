@@ -10,7 +10,6 @@ import static java.lang.String.format;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.mule.runtime.api.component.ComponentIdentifier.builder;
 import static org.mule.runtime.ast.api.util.ComponentAstPredicatesFactory.currentElemement;
 import static org.mule.runtime.ast.api.util.ComponentAstPredicatesFactory.equalsIdentifier;
@@ -55,16 +54,14 @@ public class RaiseErrorTypeReferencesExist implements Validation {
 
   @Override
   public Predicate<List<ComponentAst>> applicable() {
-    return currentElemement(equalsIdentifier(RAISE_ERROR_IDENTIFIER));
+    return currentElemement(equalsIdentifier(RAISE_ERROR_IDENTIFIER)
+        // there is already another validation for the presence of this param
+        .and(component -> component.getParameter("type").getResolvedRawValue() != null));
   }
 
   @Override
   public Optional<String> validate(ComponentAst component, ArtifactAst artifact) {
     final String errorTypeString = component.getParameter("type").getResolvedRawValue();
-    if (isEmpty(errorTypeString)) {
-      // there is already another validation for the presence of this param
-      return empty();
-    }
 
     final Set<String> errorNamespaces = artifact.dependencies().stream()
         .map(d -> d.getXmlDslModel().getPrefix().toUpperCase())
@@ -84,6 +81,11 @@ public class RaiseErrorTypeReferencesExist implements Validation {
       } else {
         return of(format("Could not find error '%s' used in %s", errorTypeString, compToLoc(component)));
       }
+    } else if (artifact.getParent()
+        .map(p -> p.getErrorTypeRepository().getErrorNamespaces().contains(errorTypeId.getNamespace()))
+        .orElse(false)) {
+      return of(format("Cannot use error type '%s': namespace already exists. Used in %s", errorTypeString,
+                       compToLoc(component)));
     }
 
     return empty();

@@ -341,6 +341,11 @@ public class ApplicationModel implements ArtifactAst {
   }
 
   @Override
+  public Optional<ArtifactAst> getParent() {
+    return ast.getParent();
+  }
+
+  @Override
   public Stream<ComponentAst> recursiveStream(AstTraversalDirection direction) {
     return ast.recursiveStream(direction);
   }

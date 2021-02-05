@@ -312,6 +312,11 @@ public class MuleArtifactContext extends AbstractRefreshableConfigApplicationCon
                 public Set<ExtensionModel> dependencies() {
                   return emptySet();
                 }
+
+                @Override
+                public Optional<ArtifactAst> getParent() {
+                  return empty();
+                }
               });
           if (disableXmlValidations) {
             builder = builder.withSchemaValidationsDisabled();
